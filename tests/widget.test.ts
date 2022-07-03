@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, ElementHandle, Frame } from "@playwright/test";
 
 test.beforeEach(async ({ page }) => {
   await page.goto("https://www.tidio.com/panel/register");
@@ -11,6 +11,7 @@ let password = (Math.random() + 1).toString(36).substring(2);
 
 test.describe("Widget tests", () => {
   test("Send message from widget to panel and from panel to widget", async ({
+    context,
     page,
   }) => {
     await test.step("Register new account", async () => {
@@ -49,10 +50,44 @@ test.describe("Widget tests", () => {
       "Simulate visitor and send message from widget to panel",
       async () => {
         await page.locator("[href='/panel/conversations']").click();
+        const [popup] = await Promise.all([
+          // It is important to call waitForEvent before click to set up waiting.
+          page.waitForEvent("popup"),
+          // Opens popup.
+          page
+            .locator("button", { hasText: "Simulate a conversation" })
+            .click(),
+        ]);
+        await popup.waitForLoadState();
+
+        const iframe = (await popup.waitForSelector(
+          "#tidio-chat-iframe"
+        )) as ElementHandle<HTMLIFrameElement>;
+        const widgetIframe = (await iframe.contentFrame()) as Frame;
+        await widgetIframe.waitForSelector('[data-testid="flyMessage"]');
+        await widgetIframe
+          .locator("button", { hasText: "No, thanks." })
+          .click();
+        await widgetIframe
+          .locator('[placeholder="Enter your message..."]')
+          .fill("Hi!");
+        await widgetIframe.locator('[data-testid="widgetButtonBody"]').click();
+        await widgetIframe
+          .locator('[placeholder="Enter your email..."]')
+          .fill(getNewEmail());
+        await widgetIframe.locator('[type="submit"]').click();
+        await page.goto("https://www.tidio.com/panel/conversations");
         //TODO
       }
     );
     await test.step("Send a reply message from the panel", async () => {
+      await page.locator("[href='/panel/conversations']").click();
+      await page.locator("button", { hasText: "Join conversation" }).click();
+      await page
+        .locator(
+          "[placeholder=Write your message or type / to pick a Quick Response]"
+        )
+        .fill("Hi!");
       //TODO
     });
   });
