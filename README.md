@@ -36,3 +36,6 @@ Add the two missing steps to the test. In the first step click on the button "Si
 Use a docker to containerize project. Use the official Playwright Docker image or build a custom image. Include information how to run test from the docker side in the readme.
 
 Good luck!
+
+## Docker Setup
+See [Docker Setup](./DOCKER.md)
