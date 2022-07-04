@@ -8,6 +8,7 @@ export const getNewEmail = (): string =>
   `testing+${new Date().getTime()}@tidio.net`;
 
 let password = (Math.random() + 1).toString(36).substring(2);
+const email = getNewEmail();
 
 test.describe("Widget tests", () => {
   test("Send message from widget to panel and from panel to widget", async ({
@@ -57,7 +58,7 @@ test.describe("Widget tests", () => {
             .click(),
         ]);
         await popup.waitForLoadState();
-
+        
         const iframe = (await popup.waitForSelector(
           "#tidio-chat-iframe"
         )) as ElementHandle<HTMLIFrameElement>;
@@ -72,16 +73,16 @@ test.describe("Widget tests", () => {
         await widgetIframe.locator('[data-testid="widgetButtonBody"]').click();
         await widgetIframe
           .locator('[placeholder="Enter your email..."]')
-          .fill(getNewEmail());
+          .fill(email);
         await widgetIframe.locator('[type="submit"]').click();
         await page.goto("https://www.tidio.com/panel/conversations");
-        await expect(page.locator("p", { hasText: "Hi!" })).toBeVisible();
+        await expect(page.locator("h4", { hasText: email })).toBeVisible();
         //done
       }
     );
     await test.step("Send a reply message from the panel", async () => {
       await page.locator("[href='/panel/conversations']").click();
-      await page.locator('text="Hi!"').click();
+      await page.locator("h4", { hasText: email }).click();
       await page
         .locator("#app-content-header >> text=Join conversation")
         .click();
