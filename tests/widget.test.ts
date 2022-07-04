@@ -51,9 +51,7 @@ test.describe("Widget tests", () => {
       async () => {
         await page.locator("[href='/panel/conversations']").click();
         const [popup] = await Promise.all([
-          // It is important to call waitForEvent before click to set up waiting.
           page.waitForEvent("popup"),
-          // Opens popup.
           page
             .locator("button", { hasText: "Simulate a conversation" })
             .click(),
@@ -77,18 +75,23 @@ test.describe("Widget tests", () => {
           .fill(getNewEmail());
         await widgetIframe.locator('[type="submit"]').click();
         await page.goto("https://www.tidio.com/panel/conversations");
-        //TODO
+        await expect(page.locator("p", { hasText: "Hi!" })).toBeVisible();
+        //done
       }
     );
     await test.step("Send a reply message from the panel", async () => {
       await page.locator("[href='/panel/conversations']").click();
-      await page.locator("button", { hasText: "Join conversation" }).click();
+      await page.locator('text="Hi!"').click();
+      await page
+        .locator("#app-content-header >> text=Join conversation")
+        .click();
       await page
         .locator(
-          "[placeholder=Write your message or type / to pick a Quick Response]"
+          '[placeholder="Write your message or type / to pick a Quick Response"]'
         )
-        .fill("Hi!");
-      //TODO
+        .fill("Hello");
+      await page.locator("button", { hasText: "Reply" }).click();
+      //done
     });
   });
 });
